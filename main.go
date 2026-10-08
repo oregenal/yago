@@ -4,7 +4,8 @@
 // TODO Usage message
 // TODO Error handling
 // TODO Response error handling
-// TODO Pretier space sizes output
+// TODO Prettier sizes output
+// TODO Prettier error messages
 
 package main
 
@@ -52,7 +53,7 @@ func mustToken(appName string) string {
 	return strings.TrimSpace(string(data))
 }
 
-func NewToken(token string) {
+func newToken(token string) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "new token fail: %v\n", err)
@@ -270,7 +271,7 @@ func (d *Disk) doRequest(method string, urlStr string) *http.Response {
 func main() {
 	if len(os.Args) == 3 {
 		if os.Args[1] == "token" {
-			NewToken(os.Args[2])
+			newToken(os.Args[2])
 			fmt.Println("new token set")
 			os.Exit(0)
 		}
@@ -302,7 +303,7 @@ func main() {
 		case "rm":
 			disk.RemoveDir(os.Args[2])
 		case "token":
-			NewToken(os.Args[2])
+			newToken(os.Args[2])
 		default:
 			fmt.Fprintf(os.Stderr, "Unknown command")
 			os.Exit(1)
