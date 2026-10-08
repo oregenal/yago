@@ -189,6 +189,20 @@ func (d *Disk) Upload(fileName string, path string) {
 	}
 	defer file.Close()
 
+	fStat, err := file.Stat()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "upload fail: %v\n", err)
+		os.Exit(1)
+	}
+
+	if fStat.IsDir() {
+		fmt.Fprintf(
+			os.Stderr,
+			"only file can be uploaded, but %v is directory\n",
+			fileName)
+		os.Exit(1)
+	}
+
 	path = "disk:/" + path
 
 	values := url.Values{}
@@ -205,11 +219,6 @@ func (d *Disk) Upload(fileName string, path string) {
 
 	req.Header.Set("Content-Type", "application/octet-stream")
 
-	fStat, err := file.Stat()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "upload fail: %v\n", err)
-		os.Exit(1)
-	}
 	req.ContentLength = fStat.Size()
 
 	resp, err := d.Do(req)
