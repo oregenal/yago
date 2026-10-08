@@ -289,7 +289,7 @@ func main() {
 		case "ls":
 			disk.List("")
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command")
+			fmt.Fprintf(os.Stderr, "Unknown command\n")
 			os.Exit(1)
 		}
 	case 3:
@@ -305,7 +305,7 @@ func main() {
 		case "token":
 			newToken(os.Args[2])
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command")
+			fmt.Fprintf(os.Stderr, "Unknown command\n")
 			os.Exit(1)
 		}
 	case 4:
@@ -313,11 +313,11 @@ func main() {
 		case "up":
 			disk.Upload(os.Args[2], os.Args[3])
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command")
+			fmt.Fprintf(os.Stderr, "Unknown command\n")
 			os.Exit(1)
 		}
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command")
+		fmt.Fprintf(os.Stderr, "Unknown command\n")
 		os.Exit(1)
 	}
 }
