@@ -63,7 +63,7 @@ func NewToken(token string) {
 
 	data := []byte(token)
 
-	err = os.WriteFile(filePath, data, 0644)
+	err = os.WriteFile(filePath, data, 0600)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "new token fail: %v\n", err)
 		os.Exit(1)
