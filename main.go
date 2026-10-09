@@ -65,7 +65,11 @@ func (d *Disk) Info() {
 
 func (d *Disk) List(path string) {
 	path = d.normalizePath(path)
-	path = "disk:/" + path
+	path, err := url.JoinPath("disk:/", path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "list fail: %v\n", err)
+		os.Exit(1)
+	}
 
 	values := url.Values{}
 	values.Add("limit", strconv.Itoa(listLimit))
@@ -86,6 +90,8 @@ func (d *Disk) List(path string) {
 func (d *Disk) MakeDir(dirName string) {
 	urlRequest, err := url.Parse(baseUrl)
 	urlRequest = urlRequest.JoinPath("resources")
+
+	dirName = d.normalizePath(dirName)
 
 	query := url.Values{}
 	query.Add("path", dirName)
@@ -108,12 +114,16 @@ func (d *Disk) MakeDir(dirName string) {
 	}
 }
 
-func (d *Disk) RemoveDir(dirName string) {
+func (d *Disk) Remove(path string) {
 	urlRequest, err := url.Parse(baseUrl)
 	urlRequest = urlRequest.JoinPath("resources")
 
-	path := d.normalizePath(dirName)
-	path = "disk:/" + path
+	path = d.normalizePath(path)
+	path, err = url.JoinPath("disk:/", path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "remove fail: %v\n", err)
+		os.Exit(1)
+	}
 
 	query := url.Values{}
 	query.Add("path", path)
@@ -139,11 +149,15 @@ func (d *Disk) RemoveDir(dirName string) {
 }
 
 func (d *Disk) Download(fileName string) {
-	path := d.normalizePath(fileName)
-	path = "disk:/" + path
+	fileName = d.normalizePath(fileName)
+	fileName, err := url.JoinPath("disk:/", fileName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "remove fail: %v\n", err)
+		os.Exit(1)
+	}
 
 	values := url.Values{}
-	values.Add("path", path)
+	values.Add("path", fileName)
 	href := d.Request(http.MethodGet, "/resources/download", values)
 
 	fout, err := os.Create(filepath.Base(fileName))
@@ -186,7 +200,11 @@ func (d *Disk) Upload(fileName string, path string) {
 	}
 
 	path = d.normalizePath(path)
-	path = "disk:/" + path
+	path, err = url.JoinPath("disk:/", path, fileName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "upload fail: %v\n", err)
+		os.Exit(1)
+	}
 
 	values := url.Values{}
 	values.Add("path", path)
@@ -343,10 +361,12 @@ func main() {
 			disk.List(os.Args[2])
 		case "down":
 			disk.Download(os.Args[2])
+		case "up":
+			disk.Upload(os.Args[2], "") 
 		case "mkdir":
 			disk.MakeDir(os.Args[2])
 		case "rm":
-			disk.RemoveDir(os.Args[2])
+			disk.Remove(os.Args[2])
 		case "token":
 			newToken(os.Args[2])
 		default:
