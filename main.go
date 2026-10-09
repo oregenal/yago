@@ -39,6 +39,7 @@ func (d *Disk) Usage(appName string) {
 	fmt.Printf("Yandex Disk CLI utility\n")
 	fmt.Printf("Usage:\n")
 	fmt.Printf("    %s help                            - show this help message\n", appName)
+	fmt.Printf("    %s                                 - show disk space information\n", appName)
 	fmt.Printf("    %s ls [dir]                        - list Yandex Disk directories\n", appName)
 	fmt.Printf("    %s down <path/file>                - download file\n", appName)
 	fmt.Printf("    %s up <path/file> <disk_path/file> - upload file\n", appName)
