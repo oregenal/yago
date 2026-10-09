@@ -1,12 +1,9 @@
 // Yandex API https://yandex.ru/dev/disk-api/doc/ru/concepts/quickstart
 // https://yandex.ru/dev/disk/rest/
 
-// TODO Usage message
-// TODO Error handling
 // TODO Response error handling
 // TODO Prettier sizes output
-// TODO Prettier error messages
-// TODO handle multiple files deletion
+// TODO handle multiple files deletion uploading etc.
 
 package main
 
@@ -281,7 +278,7 @@ func (d *Disk) doRequest(method string, urlStr string) *http.Response {
 func (d *Disk) normalizePath(path string) string {
 	path = strings.TrimPrefix(path, "disk:")
 	path = strings.TrimPrefix(path, "/")
-	
+
 	return path
 }
 
@@ -323,10 +320,12 @@ func newToken(token string) {
 }
 
 func usageError(args []string) {
-	appName := filepath.Base(args[0])
+	args[0] = filepath.Base(args[0])
 
-	fmt.Fprintf(os.Stderr, "Unknown command: %s %s\n", appName, strings.Join(args[1:], " "))
-	fmt.Fprintf(os.Stderr, "For more info use: %s help\n", appName)
+	fmt.Fprintf(os.Stderr, "Unknown command: %s\n", strings.Join(args, " "))
+	fmt.Fprintf(os.Stderr, "For more info use: %s help\n", args[0])
+
+	os.Exit(1)
 }
 
 func main() {
@@ -353,7 +352,6 @@ func main() {
 			disk.Usage(filepath.Base(os.Args[0]))
 		default:
 			usageError(os.Args)
-			os.Exit(1)
 		}
 	case 3:
 		switch os.Args[1] {
@@ -362,7 +360,7 @@ func main() {
 		case "down":
 			disk.Download(os.Args[2])
 		case "up":
-			disk.Upload(os.Args[2], "") 
+			disk.Upload(os.Args[2], "")
 		case "mkdir":
 			disk.MakeDir(os.Args[2])
 		case "rm":
@@ -371,7 +369,6 @@ func main() {
 			newToken(os.Args[2])
 		default:
 			usageError(os.Args)
-			os.Exit(1)
 		}
 	case 4:
 		switch os.Args[1] {
@@ -379,10 +376,8 @@ func main() {
 			disk.Upload(os.Args[2], os.Args[3])
 		default:
 			usageError(os.Args)
-			os.Exit(1)
 		}
 	default:
 		usageError(os.Args)
-		os.Exit(1)
 	}
 }
