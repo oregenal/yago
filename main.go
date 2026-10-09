@@ -67,7 +67,7 @@ func (d *Disk) List(path string) {
 	path = d.normalizePath(path)
 	path, err := url.JoinPath("disk:/", path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "list fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -103,13 +103,13 @@ func (d *Disk) MakeDir(dirName string) {
 	var result map[string]any
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "mkdir fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
 	if resp.StatusCode != http.StatusCreated {
 		msg := result["message"]
-		fmt.Fprintf(os.Stderr, "mkdir fail: %v %v\n", resp.StatusCode, msg)
+		fmt.Fprintf(os.Stderr, "%v %v\n", resp.StatusCode, msg)
 		os.Exit(1)
 	}
 }
@@ -121,7 +121,7 @@ func (d *Disk) Remove(path string) {
 	path = d.normalizePath(path)
 	path, err = url.JoinPath("disk:/", path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "remove fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -136,7 +136,7 @@ func (d *Disk) Remove(path string) {
 		var result map[string]any
 		err = json.NewDecoder(resp.Body).Decode(&result)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "rm fail: %v\n", err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 			os.Exit(1)
 		}
 
@@ -152,7 +152,7 @@ func (d *Disk) Download(fileName string) {
 	fileName = d.normalizePath(fileName)
 	fileName, err := url.JoinPath("disk:/", fileName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "remove fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -162,7 +162,7 @@ func (d *Disk) Download(fileName string) {
 
 	fout, err := os.Create(filepath.Base(fileName))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "download fail %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 	defer fout.Close()
@@ -172,7 +172,7 @@ func (d *Disk) Download(fileName string) {
 
 	_, err = io.Copy(fout, resp.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "download fail %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 }
@@ -180,14 +180,14 @@ func (d *Disk) Download(fileName string) {
 func (d *Disk) Upload(fileName string, path string) {
 	file, err := os.Open(fileName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "upload fail %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 	defer file.Close()
 
 	fStat, err := file.Stat()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "upload fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -202,7 +202,7 @@ func (d *Disk) Upload(fileName string, path string) {
 	path = d.normalizePath(path)
 	path, err = url.JoinPath("disk:/", path, fileName)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "upload fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -214,7 +214,7 @@ func (d *Disk) Upload(fileName string, path string) {
 	url := href["href"].(string)
 	req, err := http.NewRequest(http.MethodPut, url, file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "upload fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -224,13 +224,13 @@ func (d *Disk) Upload(fileName string, path string) {
 
 	resp, err := d.Do(req)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "upload fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 	resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		fmt.Fprintf(os.Stderr, "upload fail")
+		fmt.Fprintf(os.Stderr, "upload fail\n")
 		os.Exit(1)
 	}
 }
@@ -247,12 +247,12 @@ func (d *Disk) Request(method string, APIpath string, query url.Values) Response
 	var result map[string]any
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Request fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Fprintf(os.Stderr, "Request fail: %v\n", result["message"])
+		fmt.Fprintf(os.Stderr, "%v\n", result["message"])
 		os.Exit(1)
 	}
 
@@ -262,7 +262,7 @@ func (d *Disk) Request(method string, APIpath string, query url.Values) Response
 func (d *Disk) doRequest(method string, urlStr string) *http.Response {
 	req, err := http.NewRequest(method, urlStr, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "doRequest fail %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -271,7 +271,7 @@ func (d *Disk) doRequest(method string, urlStr string) *http.Response {
 
 	resp, err := d.Do(req)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "doRequest fail %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -288,7 +288,7 @@ func (d *Disk) normalizePath(path string) string {
 func mustToken(appName string) string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "token fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -307,7 +307,7 @@ func mustToken(appName string) string {
 func newToken(token string) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "new token fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 
@@ -317,7 +317,7 @@ func newToken(token string) {
 
 	err = os.WriteFile(filePath, data, 0600)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "new token fail: %v\n", err)
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 }
