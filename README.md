@@ -1,12 +1,12 @@
 # yago
-Simple console utility for [Yandex Disk](https://disk.yandex.ru).
+Simple console utility for [Yandex Disk](https://disk.yandex.com).
 
 ## Build
 ```console
 go build
 ```
 ## Startup
-First of all you need [OAuth token](https://yandex.ru/dev/id/doc/ru/register-api).  
+First of all you need [OAuth token](https://yandex.com/dev/id/doc/en/register-api).  
 Required rights: Read all Disk, Write to Disk, Access to Disk info.  
 To enter that token use `token` key.
 ```console
