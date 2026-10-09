@@ -6,6 +6,7 @@
 // TODO Response error handling
 // TODO Prettier sizes output
 // TODO Prettier error messages
+// TODO handle multiple files deletion
 
 package main
 
@@ -34,41 +35,16 @@ type Disk struct {
 
 type Response map[string]any
 
-func mustToken(appName string) string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "token fail: %v\n", err)
-		os.Exit(1)
-	}
-
-	filePath := filepath.Join(homeDir, tokenFile)
-
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "first you must provide token\n")
-		fmt.Fprintf(os.Stderr, "USAGE: %s token <token>\n", appName)
-		os.Exit(1)
-	}
-
-	return strings.TrimSpace(string(data))
-}
-
-func newToken(token string) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "new token fail: %v\n", err)
-		os.Exit(1)
-	}
-
-	filePath := filepath.Join(homeDir, tokenFile)
-
-	data := []byte(token)
-
-	err = os.WriteFile(filePath, data, 0600)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "new token fail: %v\n", err)
-		os.Exit(1)
-	}
+func (d *Disk) Usage(appName string) {
+	fmt.Printf("Yandex Disk CLI utility\n")
+	fmt.Printf("Usage:\n")
+	fmt.Printf("    %s help                            - show this help message\n", appName)
+	fmt.Printf("    %s ls [dir]                        - list Yandex Disk directories\n", appName)
+	fmt.Printf("    %s down <path/file>                - download file\n", appName)
+	fmt.Printf("    %s up <path/file> <disk_path/file> - upload file\n", appName)
+	fmt.Printf("    %s mkdir <path/dir>                - create directory\n", appName)
+	fmt.Printf("    %s rm <path/dir|file>              - remove directory or file\n", appName)
+	fmt.Printf("    %s token <OAuth_token>             - set Yandex Disk OAuth token\n", appName)
 }
 
 func (d *Disk) Info() {
@@ -87,6 +63,7 @@ func (d *Disk) Info() {
 }
 
 func (d *Disk) List(path string) {
+	path = d.normalizePath(path)
 	path = "disk:/" + path
 
 	values := url.Values{}
@@ -134,8 +111,11 @@ func (d *Disk) RemoveDir(dirName string) {
 	urlRequest, err := url.Parse(baseUrl)
 	urlRequest = urlRequest.JoinPath("resources")
 
+	path := d.normalizePath(dirName)
+	path = "disk:/" + path
+
 	query := url.Values{}
-	query.Add("path", dirName)
+	query.Add("path", path)
 	urlRequest.RawQuery = query.Encode()
 
 	resp := d.doRequest(http.MethodDelete, urlRequest.String())
@@ -158,7 +138,8 @@ func (d *Disk) RemoveDir(dirName string) {
 }
 
 func (d *Disk) Download(fileName string) {
-	path := "disk:/" + fileName
+	path := d.normalizePath(fileName)
+	path = "disk:/" + path
 
 	values := url.Values{}
 	values.Add("path", path)
@@ -203,6 +184,7 @@ func (d *Disk) Upload(fileName string, path string) {
 		os.Exit(1)
 	}
 
+	path = d.normalizePath(path)
 	path = "disk:/" + path
 
 	values := url.Values{}
@@ -234,9 +216,9 @@ func (d *Disk) Upload(fileName string, path string) {
 	}
 }
 
-func (d *Disk) Request(method string, path string, query url.Values) Response {
+func (d *Disk) Request(method string, APIpath string, query url.Values) Response {
 	urlRequest, err := url.Parse(baseUrl)
-	urlRequest = urlRequest.JoinPath(path)
+	urlRequest = urlRequest.JoinPath(APIpath)
 
 	urlRequest.RawQuery = query.Encode()
 
@@ -277,6 +259,57 @@ func (d *Disk) doRequest(method string, urlStr string) *http.Response {
 	return resp
 }
 
+func (d *Disk) normalizePath(path string) string {
+	path = strings.TrimPrefix(path, "disk:")
+	path = strings.TrimPrefix(path, "/")
+	
+	return path
+}
+
+func mustToken(appName string) string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "token fail: %v\n", err)
+		os.Exit(1)
+	}
+
+	filePath := filepath.Join(homeDir, tokenFile)
+
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "first you must provide token\n")
+		fmt.Fprintf(os.Stderr, "USAGE: %s token <token>\n", appName)
+		os.Exit(1)
+	}
+
+	return strings.TrimSpace(string(data))
+}
+
+func newToken(token string) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "new token fail: %v\n", err)
+		os.Exit(1)
+	}
+
+	filePath := filepath.Join(homeDir, tokenFile)
+
+	data := []byte(token)
+
+	err = os.WriteFile(filePath, data, 0600)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "new token fail: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func usageError(args []string) {
+	appName := filepath.Base(args[0])
+
+	fmt.Fprintf(os.Stderr, "Unknown command: %s %s\n", appName, strings.Join(args[1:], " "))
+	fmt.Fprintf(os.Stderr, "For more info use: %s help\n", appName)
+}
+
 func main() {
 	if len(os.Args) == 3 {
 		if os.Args[1] == "token" {
@@ -297,8 +330,10 @@ func main() {
 		switch os.Args[1] {
 		case "ls":
 			disk.List("")
+		case "help":
+			disk.Usage(filepath.Base(os.Args[0]))
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command\n")
+			usageError(os.Args)
 			os.Exit(1)
 		}
 	case 3:
@@ -314,7 +349,7 @@ func main() {
 		case "token":
 			newToken(os.Args[2])
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command\n")
+			usageError(os.Args)
 			os.Exit(1)
 		}
 	case 4:
@@ -322,11 +357,11 @@ func main() {
 		case "up":
 			disk.Upload(os.Args[2], os.Args[3])
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command\n")
+			usageError(os.Args)
 			os.Exit(1)
 		}
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command\n")
+		usageError(os.Args)
 		os.Exit(1)
 	}
 }
