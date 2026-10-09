@@ -37,11 +37,11 @@ func (d *Disk) Usage(appName string) {
 	fmt.Printf("Usage:\n")
 	fmt.Printf("    %s help                            - show this help message\n", appName)
 	fmt.Printf("    %s                                 - show disk space information\n", appName)
-	fmt.Printf("    %s ls [dir]                        - list Yandex Disk directories\n", appName)
-	fmt.Printf("    %s down <path/file>                - download file\n", appName)
-	fmt.Printf("    %s up <path/file> <disk_path/file> - upload file\n", appName)
-	fmt.Printf("    %s mkdir <path/dir>                - create directory\n", appName)
-	fmt.Printf("    %s rm <path/dir|file>              - remove directory or file\n", appName)
+	fmt.Printf("    %s ls [dir]                        - list directory\n", appName)
+	fmt.Printf("    %s down <file>                     - download file\n", appName)
+	fmt.Printf("    %s up <file> [disk_path]           - upload file\n", appName)
+	fmt.Printf("    %s mkdir <dir>                     - create directory\n", appName)
+	fmt.Printf("    %s rm <dir|file>                   - remove directory or file\n", appName)
 	fmt.Printf("    %s token <OAuth_token>             - set Yandex Disk OAuth token\n", appName)
 }
 
