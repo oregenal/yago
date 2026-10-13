@@ -164,12 +164,18 @@ func (d *Disk) Download(fileName string) {
 	}
 	defer fout.Close()
 
+	// TODO check for request status
 	resp := d.doRequest(href["method"].(string), href["href"].(string))
 	defer resp.Body.Close()
 
-	_, err = io.Copy(fout, resp.Body)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+	if resp.StatusCode == http.StatusOK {
+		_, err = io.Copy(fout, resp.Body)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		fmt.Fprintf(os.Stderr, "%v\n", resp.Status)
 		os.Exit(1)
 	}
 }
