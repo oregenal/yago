@@ -62,8 +62,7 @@ func (d *Disk) Info() {
 
 func (d *Disk) List(path string) {
 	path = d.normalizePath(path)
-	path, err := url.JoinPath("disk:/", path)
-	checkFatal(err)
+	path = "disk:/" + path
 
 	values := url.Values{}
 	values.Add("limit", strconv.Itoa(listLimit))
@@ -112,8 +111,7 @@ func (d *Disk) Remove(path string) {
 	checkFatal(err)
 
 	path = d.normalizePath(path)
-	path, err = url.JoinPath("disk:/", path)
-	checkFatal(err)
+	path = "disk:/" + path
 
 	query := url.Values{}
 	query.Add("path", path)
@@ -137,8 +135,7 @@ func (d *Disk) Remove(path string) {
 
 func (d *Disk) Download(fileName string) {
 	fileName = d.normalizePath(fileName)
-	fileName, err := url.JoinPath("disk:/", fileName)
-	checkFatal(err)
+	fileName = "disk:/" + fileName
 
 	values := url.Values{}
 	values.Add("path", fileName)
@@ -148,7 +145,6 @@ func (d *Disk) Download(fileName string) {
 	checkFatal(err)
 	defer fout.Close()
 
-	// TODO check for request status
 	resp := d.doRequest(href["method"].(string), href["href"].(string))
 	defer resp.Body.Close()
 
@@ -163,8 +159,8 @@ func (d *Disk) Download(fileName string) {
 
 func (d *Disk) Upload(fileName string, path string) {
 	file, err := os.Open(fileName)
-	checkFatal(err)
 	defer file.Close()
+	checkFatal(err)
 
 	fStat, err := file.Stat()
 	checkFatal(err)
@@ -178,8 +174,7 @@ func (d *Disk) Upload(fileName string, path string) {
 	}
 
 	path = d.normalizePath(path)
-	path, err = url.JoinPath("disk:/", path, fileName)
-	checkFatal(err)
+	path = "disk:/" + path + "/" + fileName
 
 	values := url.Values{}
 	values.Add("path", path)
@@ -206,15 +201,16 @@ func (d *Disk) Upload(fileName string, path string) {
 
 func (d *Disk) Request(method string, APIpath string, query url.Values) Response {
 	urlRequest, err := url.Parse(baseUrl)
-	urlRequest = urlRequest.JoinPath(APIpath)
 	checkFatal(err)
+
+	urlRequest = urlRequest.JoinPath(APIpath)
 
 	urlRequest.RawQuery = query.Encode()
 
 	resp := d.doRequest(method, urlRequest.String())
 	defer resp.Body.Close()
 
-	var result map[string]any
+	var result Response
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	checkFatal(err)
 
