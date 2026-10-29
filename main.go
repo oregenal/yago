@@ -159,8 +159,8 @@ func (d *Disk) Download(fileName string) {
 
 func (d *Disk) Upload(fileName string, path string) {
 	file, err := os.Open(fileName)
-	defer file.Close()
 	checkFatal(err)
+	defer file.Close()
 
 	fStat, err := file.Stat()
 	checkFatal(err)
@@ -173,8 +173,14 @@ func (d *Disk) Upload(fileName string, path string) {
 		os.Exit(1)
 	}
 
-	path = d.normalizePath(path)
-	path = "disk:/" + path + "/" + fileName
+	fileName = filepath.Base(fileName)
+
+	if path == "" {
+		path = "disk:/" + fileName
+	} else {
+		path = d.normalizePath(path)
+		path = "disk:/" + path + "/" + fileName
+	}
 
 	values := url.Values{}
 	values.Add("path", path)
