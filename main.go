@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	baseUrl   = "https://cloud-api.yandex.net/v1/disk"
-	tokenFile = ".yago"
-	listLimit = 50
+	pathPrefix = "disk:/" 
+	baseUrl    = "https://cloud-api.yandex.net/v1/disk"
+	tokenFile  = ".yago"
+	listLimit  = 50
 )
 
 type Disk struct {
@@ -62,7 +63,7 @@ func (d *Disk) Info() {
 
 func (d *Disk) List(path string) {
 	path = d.normalizePath(path)
-	path = "disk:/" + path
+	path = pathPrefix + path
 
 	values := url.Values{}
 	values.Add("limit", strconv.Itoa(listLimit))
@@ -111,7 +112,7 @@ func (d *Disk) Remove(path string) {
 	checkFatal(err)
 
 	path = d.normalizePath(path)
-	path = "disk:/" + path
+	path = pathPrefix + path
 
 	query := url.Values{}
 	query.Add("path", path)
@@ -135,7 +136,7 @@ func (d *Disk) Remove(path string) {
 
 func (d *Disk) Download(fileName string) {
 	fileName = d.normalizePath(fileName)
-	fileName = "disk:/" + fileName
+	fileName = pathPrefix + fileName
 
 	values := url.Values{}
 	values.Add("path", fileName)
@@ -176,10 +177,10 @@ func (d *Disk) Upload(fileName string, path string) {
 	fileName = filepath.Base(fileName)
 
 	if path == "" {
-		path = "disk:/" + fileName
+		path = pathPrefix + fileName
 	} else {
 		path = d.normalizePath(path)
-		path = "disk:/" + path + "/" + fileName
+		path = pathPrefix + path + "/" + fileName
 	}
 
 	values := url.Values{}
