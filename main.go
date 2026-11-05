@@ -1,6 +1,7 @@
 // Yandex API https://yandex.ru/dev/disk-api/doc/ru/concepts/quickstart
 // https://yandex.ru/dev/disk/rest/
 
+// TODO Extremely slow upload
 // TODO Response error handling
 // TODO Prettier sizes output
 // TODO handle multiple files deletion uploading etc.
@@ -134,6 +135,18 @@ func (d *Disk) Remove(path string) {
 	}
 }
 
+type dataTrans struct {
+	processed int64
+	total     int64
+}
+
+func (dt *dataTrans) Write(d []byte) (int, error) {
+	size := len(d)
+	dt.processed += int64(size)
+	fmt.Printf("\rProcessed: %.0f%%", float64(dt.processed)/float64(dt.total)*100)
+	return size, nil
+}
+
 func (d *Disk) Download(fileName string) {
 	fileName = d.normalizePath(fileName)
 	fileName = pathPrefix + fileName
@@ -149,13 +162,19 @@ func (d *Disk) Download(fileName string) {
 	resp := d.doRequest(href["method"].(string), href["href"].(string))
 	defer resp.Body.Close()
 
+	dt := &dataTrans{}
+	// TODO check err, maybe it is can be usefull 
+	dt.total, _ = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 0)
+
 	if resp.StatusCode == http.StatusOK {
-		_, err = io.Copy(fout, resp.Body)
+		_, err = io.Copy(fout, io.TeeReader(resp.Body, dt))
 		checkFatal(err)
 	} else {
 		fmt.Fprintf(os.Stderr, "%v\n", resp.Status)
 		os.Exit(1)
 	}
+
+	fmt.Println("")
 }
 
 func (d *Disk) Upload(fileName string, path string) {
@@ -188,17 +207,22 @@ func (d *Disk) Upload(fileName string, path string) {
 
 	href := d.Request(http.MethodGet, "resources/upload", values)
 
+	dt := &dataTrans{}
+	dt.total = fStat.Size()
+
 	url := href["href"].(string)
-	req, err := http.NewRequest(http.MethodPut, url, file)
+	req, err := http.NewRequest(http.MethodPut, url, io.TeeReader(file, dt))
 	checkFatal(err)
 
 	req.Header.Set("Content-Type", "application/octet-stream")
 
-	req.ContentLength = fStat.Size()
+	req.ContentLength = dt.total
 
 	resp, err := d.Do(req)
 	checkFatal(err)
 	resp.Body.Close()
+
+	fmt.Println("")
 
 	if resp.StatusCode != http.StatusCreated {
 		fmt.Fprintf(os.Stderr, "upload fail\n")
