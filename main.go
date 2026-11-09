@@ -3,7 +3,6 @@
 
 // TODO Extremely slow upload
 // TODO Response error handling
-// TODO Prettier sizes output
 // TODO handle multiple files deletion uploading etc.
 
 package main
@@ -47,19 +46,29 @@ func (d *Disk) Usage(appName string) {
 	fmt.Printf("    %s token <OAuth_token>             - set Yandex Disk OAuth token\n", appName)
 }
 
+func showSize(size float64) string {
+	const mib = 1024 * 1024
+	const gib = mib * 1024
+
+	if size < mib * 1024 {
+		return fmt.Sprintf("%.2f Mib", size / mib)
+	} else {
+		return fmt.Sprintf("%.2f Gib", size / gib)
+	}
+}
+
 func (d *Disk) Info() {
 	disk_info := d.Request(http.MethodGet, "", nil)
 
-	const mib = 1024 * 1024
-	total_space := disk_info["total_space"].(float64) / mib
-	used_space := disk_info["used_space"].(float64) / mib
-	trash_size := disk_info["trash_size"].(float64) / mib
+	total_space := disk_info["total_space"].(float64)
+	used_space := disk_info["used_space"].(float64)
+	trash_size := disk_info["trash_size"].(float64)
 	free_space := total_space - used_space - trash_size
 
-	fmt.Printf("total space: %.0f Mib\n", total_space)
-	fmt.Printf("free space:  %.0f Mib\n", free_space)
-	fmt.Printf("used space:  %.0f Mib\n", used_space)
-	fmt.Printf("trash space: %.0f Mib\n", trash_size)
+	fmt.Printf("total space: %v\n", showSize(total_space))
+	fmt.Printf("free space:  %v\n", showSize(free_space))
+	fmt.Printf("used space:  %v\n", showSize(used_space))
+	fmt.Printf("trash size:  %v\n", showSize(trash_size))
 }
 
 func (d *Disk) List(path string) {
