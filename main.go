@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	pathPrefix = "disk:/" 
+	pathPrefix = "disk:/"
 	baseUrl    = "https://cloud-api.yandex.net/v1/disk"
 	tokenFile  = ".yago"
 	listLimit  = 50
@@ -50,10 +50,10 @@ func showSize(size float64) string {
 	const mib = 1024 * 1024
 	const gib = mib * 1024
 
-	if size < mib * 1024 {
-		return fmt.Sprintf("%.2f Mib", size / mib)
+	if size < mib*1024 {
+		return fmt.Sprintf("%.2f Mib", size/mib)
 	} else {
-		return fmt.Sprintf("%.2f Gib", size / gib)
+		return fmt.Sprintf("%.2f Gib", size/gib)
 	}
 }
 
@@ -172,7 +172,7 @@ func (d *Disk) Download(fileName string) {
 	defer resp.Body.Close()
 
 	dt := &dataTrans{}
-	// TODO check err, maybe it is can be usefull 
+	// TODO check err, maybe it is can be usefull
 	dt.total, _ = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 0)
 
 	if resp.StatusCode == http.StatusOK {
